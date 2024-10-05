@@ -79,66 +79,73 @@ def generate_frames():
 
 
 def generate_frames_alt():
-    global last_prediction_alt, last_instruction, hold_start_time, char_index  # Use global to store prediction and instruction
+    global last_predict_alt, last_instruction, hold_start_time, char_index  # ใช้ global เพื่อเก็บค่า prediction และ instruction
     cap = cv2.VideoCapture(0)
     characters = [chr(i) for i in range(65, 91)]  # A-Z
-    char_index = 0
+    char_index = 0  # เริ่มจากตัว A
 
     while True:
-        ret, frame = cap.read()
-        if not ret:
+        success, frame = cap.read()
+        if not success:
             break
 
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = hands.process(frame_rgb)
 
         data_aux = []
+        x_ = []
+        y_ = []
         predicted_character = None
 
         if results.multi_hand_landmarks:
-            if len(results.multi_hand_landmarks) == 1:
-                for hand_landmarks in results.multi_hand_landmarks:
-                    # Draw landmarks
-                    mp_drawing.draw_landmarks(
-                        frame,
-                        hand_landmarks,
-                        mp_hands.HAND_CONNECTIONS,
-                        mp_drawing_styles.get_default_hand_landmarks_style(),
-                        mp_drawing_styles.get_default_hand_connections_style()
-                    )
+            for hand_landmarks in results.multi_hand_landmarks:
+                mp_drawing.draw_landmarks(
+                    frame, 
+                    hand_landmarks, 
+                    mp_hands.HAND_CONNECTIONS,
+                    mp_drawing_styles.get_default_hand_landmarks_style(),
+                    mp_drawing_styles.get_default_hand_connections_style()
+                )
 
-                    for i in range(len(hand_landmarks.landmark)):
-                        x = hand_landmarks.landmark[i].x
-                        y = hand_landmarks.landmark[i].y
-                        data_aux.append(x)
-                        data_aux.append(y)
+                for i in range(len(hand_landmarks.landmark)):
+                    x = hand_landmarks.landmark[i].x
+                    y = hand_landmarks.landmark[i].y
+                    x_.append(x)
+                    y_.append(y)
 
-                # Make prediction
-                prediction = model.predict([np.asarray(data_aux)])
-                predicted_index = int(prediction[0])
-                predicted_character = chr(predicted_index + 65)
+                for i in range(len(hand_landmarks.landmark)):
+                    x = hand_landmarks.landmark[i].x
+                    y = hand_landmarks.landmark[i].y
+                    data_aux.append(x - min(x_))
+                    data_aux.append(y - min(y_))
 
-                # Update the last prediction
-                last_prediction_alt = predicted_character
-            else:
-                last_prediction_alt = 'Please show only one hand!'  # Message for more than one hand
+            # Make prediction
+            prediction = model.predict([np.asarray(data_aux)])
+            predicted_character = labels_dict[int(prediction[0])]
 
-        # Logic to check if the detected character matches the target
-        target_character = characters[char_index]  # Target character to perform
+            # Update the last_predict_alt
+            last_predict_alt = predicted_character
+
+        # Logic to check if the detected character matches the current target
+        target_character = characters[char_index]  # Target character
         if predicted_character == target_character:
             if hold_start_time is None:
-                hold_start_time = time.time()  # Start timing when the character is held
+                hold_start_time = time.time()  # Start timing when the character is shown
 
-            elapsed_time = time.time() - hold_start_time  # Calculate time taken
+            elapsed_time = time.time() - hold_start_time  # Calculate time held
 
-            if elapsed_time >= 2:  # If held for 2 seconds
-                last_instruction = f'Do "{characters[char_index + 1]}"' if char_index + 1 < len(characters) else "Finished!"
-                char_index += 1  # Move to the next character
-                hold_start_time = None  # Reset timer
+            if elapsed_time >= 2:  # If character is held for 2 seconds
+                # Update instruction to move to the next character
+                if char_index + 1 < len(characters):
+                    last_instruction = f'Do "{characters[char_index + 1]}"'  # Move to next character
+                    char_index += 1
+                else:
+                    last_instruction = "Finished!"  # No more characters left to show
+                hold_start_time = None  # Reset the timer
         else:
-            hold_start_time = None  # Reset timer
+            hold_start_time = None  # Reset the timer if the character doesn't match
 
-        # Display the instruction for when not matched
+        # Show the current instruction
         last_instruction = f'Do "{target_character}"' if hold_start_time is None else last_instruction
 
         # Encode the frame in JPEG format
@@ -185,13 +192,14 @@ def get_asl_result():
 
 @app.route('/get_asl_result_alt')
 def get_asl_result_alt():
-    global last_prediction_alt
-    return {'result': last_prediction_alt}
+    global last_predict_alt
+    return {'result': last_predict_alt}
 
 @app.route('/get_asl_instruction', methods=['GET'])
 def get_asl_instruction():
-    global last_instruction  # Use global to access the latest instruction
+    global last_instruction  # ใช้ global เพื่อดึงคำสั่งล่าสุด
     return jsonify({'instruction': last_instruction})
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -3,17 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson 2 - ASL Hand Sign Detection</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>ASL Lesson 2</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        video {
+            width: 640px;
+            height: 480px;
+        }
+
+        .instruction {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .result {
+            margin-top: 10px;
+            font-size: 20px;
+            color: green;
+        }
+
+        .button-container {
+            margin-top: 30px;
+            display: flex; /* ใช้ flexbox เพื่อจัดเรียงปุ่ม */
+            gap: 10px; /* ช่องว่างระหว่างปุ่ม */
+        }
+
+        .back-button, .start-button, .stop-button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .back-button:hover, .start-button:hover, .stop-button:hover {
+            background-color: #0056b3;
+        }
+
+        .timer {
+            font-size: 22px;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container text-center">
-        <h1>Lesson 2</h1>
-        <p>Perform the sign for the letter <strong>B</strong>.</p>
-        <a href="{{ url_for('video_feed', lesson_number=2) }}" class="btn btn-primary">Start Video Feed</a>
-        <br><br>
-        <a href="{{ url_for('home') }}" class="btn btn-secondary">Back to Home</a>
+    <h1>ASL Lesson 2</h1>
+
+    <div class="video-container">
+        <!-- วิดีโอจากกล้อง -->
+        <img src="{{ url_for('video_feed', lesson_number=2) }}" id="video" alt="Video Feed">
     </div>
+
+    <!-- คำสั่งปัจจุบันจะแสดงที่นี่ -->
+    <div class="instruction" id="instruction">Waiting for instruction...</div>
+
+    <!-- ผลลัพธ์การตรวจจับแสดงที่นี่ -->
+    <div class="result" id="result">Prediction: None</div>
+
+    <!-- แสดงเวลา -->
+    <div class="timer" id="timer">Time: 00:00</div>
+
+    <!-- ปุ่มจับเวลา -->
+    <div class="button-container">
+        <button class="start-button" id="start-btn">Start</button>
+        <button class="stop-button" id="stop-btn" disabled>Stop</button>
+    </div>
+
+    <!-- ปุ่มกลับไปหน้าหลัก -->
+    <a href="/" class="back-button">กลับหน้าหลัก</a>
+
+    <script>
+        let timerInterval;
+        let elapsedTime = 0;
+        let startTime;
+
+        // ฟังก์ชันจับเวลา
+        function startTimer() {
+            startTime = Date.now() - elapsedTime;
+            timerInterval = setInterval(function() {
+                elapsedTime = Date.now() - startTime;
+                document.getElementById('timer').textContent = "Time: " + formatTime(elapsedTime);
+            }, 1000); // อัพเดตทุกๆ 1 วินาที
+
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('stop-btn').disabled = false;
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('stop-btn').disabled = true;
+        }
+
+        function formatTime(ms) {
+            let totalSeconds = Math.floor(ms / 1000);
+            let minutes = Math.floor(totalSeconds / 60);
+            let seconds = totalSeconds % 60;
+            return `${pad(minutes)}:${pad(seconds)}`;
+        }
+
+        function pad(number) {
+            return number < 10 ? '0' + number : number;
+        }
+
+        // Update instruction and prediction result in real-time
+        function updateInstruction() {
+            fetch('/get_asl_instruction')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('instruction').textContent = data.instruction;
+                });
+        }
+
+        function updateResult() {
+            fetch('/get_asl_result_alt')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('result').textContent = "Prediction: " + data.result;
+                });
+        }
+
+        // อัพเดตทุกๆ 1 วินาที
+        setInterval(updateInstruction, 1000);
+        setInterval(updateResult, 1000);
+
+        // Event listeners for Start and Stop buttons
+        document.getElementById('start-btn').addEventListener('click', startTimer);
+        document.getElementById('stop-btn').addEventListener('click', stopTimer);
+    </script>
 </body>
 </html>
-
