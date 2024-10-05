@@ -5,14 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lesson 1 - ASL Hand Sign Detection</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        #timer {
+            font-size: 2rem;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
     <div class="container text-center">
-        <h1>Lesson 1</h1>
-        <p>Perform the sign for the letter <strong>A</strong>.</p>
-        <a href="{{ url_for('video_feed', lesson_number=1) }}" class="btn btn-primary">Start Video Feed</a> 
+        <h1>การตรวจจับสัญญาณมือ ASL - บทเรียน 1</h1>
+
+        <!-- วิดีโอถ่ายทอดสดจากกล้อง -->
+        <img src="{{ url_for('video_feed', lesson_number=1) }}" width="640" height="480">
+
+        
         <br><br>
-        <a href="{{ url_for('home') }}" class="btn btn-secondary">Back to Home</a>
+        <button id="startButton" class="btn btn-success">เริ่มจับเวลา</button>
+        <button id="stopButton" class="btn btn-danger" disabled>หยุดจับเวลา</button>
+        <div id="timer">00:00</div>
+
+        <!-- พื้นที่แสดงผลลัพธ์จากโมเดล ASL -->
+        <div id="aslResult" style="margin-top: 20px; font-size: 1.5rem;">
+            ผลลัพธ์จากโมเดล: <span id="resultText">รอการตรวจจับ...</span>
+        </div>
+        
+        <br><br>
+        <a href="{{ url_for('home') }}" class="btn btn-secondary">กลับไปหน้าแรก</a>
     </div>
+
+    <script>
+        const startButton = document.getElementById("startButton");
+        const stopButton = document.getElementById("stopButton");
+        const timerDisplay = document.getElementById("timer");
+        const resultText = document.getElementById("resultText");
+        
+        let timer;
+        let seconds = 0;
+
+        // ฟังก์ชันสำหรับการจับเวลา
+        function startTimer() {
+            timer = setInterval(() => {
+                seconds++;
+                let minutes = Math.floor(seconds / 60);
+                let secs = seconds % 60;
+                timerDisplay.textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // ฟังก์ชันหยุดจับเวลา
+        function stopTimer() {
+            clearInterval(timer);
+        }
+
+        startButton.addEventListener("click", function() {
+            startTimer();
+            startButton.disabled = true;
+            stopButton.disabled = false;
+        });
+
+        stopButton.addEventListener("click", function() {
+            stopTimer();
+            startButton.disabled = false;
+            stopButton.disabled = true;
+        });
+
+        // เรียกใช้ API เพื่อนำผลลัพธ์จากโมเดลแสดงในหน้าเว็บ
+        setInterval(() => {
+            fetch('/get_asl_result')
+                .then(response => response.json())
+                .then(data => {
+                    resultText.textContent = data.result;
+                });
+        }, 1000);  // ดึงข้อมูลทุก 1 วินาที
+    </script>
 </body>
 </html>
