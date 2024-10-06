@@ -8,7 +8,7 @@ spark_conn = os.environ.get("spark_conn", "spark_conn")
 spark_master = "spark://spark:7077"
 postgres_driver_jar = "/usr/local/spark/assets/jars/postgresql-42.2.6.jar"
 
-remote_work_file = "/usr/local/spark/assets/data/new_file.csv"
+remote_work_file = "/usr/local/spark/assets/data/user_log.csv"
 postgres_db = "jdbc:postgresql://postgres:5432/airflow"
 postgres_user = "airflow"
 postgres_pwd = "airflow"
