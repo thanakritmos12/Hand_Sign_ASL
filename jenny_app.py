@@ -216,11 +216,11 @@ def character_detection_mode():
                 'Username': st.session_state['username'],
                 'Mode': st.session_state['mode'],
                 'Score': st.session_state['score'],
-                'Total Time': st.session_state['total_time']  # Log total time
+                'total_time': st.session_state['total_time']  # Log total time with new column name 'total_time'
             }
 
-            # Check for duplicate entries based on Total Time
-            is_duplicate = any(entry['Total Time'] == log_entry['Total Time'] for entry in st.session_state['log_data'])
+            # Check for duplicate entries based on total_time
+            is_duplicate = any(entry['total_time'] == log_entry['total_time'] for entry in st.session_state['log_data'])
             
             if not is_duplicate:  # Only log if it's not a duplicate
                 st.session_state['log_data'].append(log_entry)  # Add the entry to the log data
@@ -228,7 +228,20 @@ def character_detection_mode():
 
             # Save log data to CSV
             log_df = pd.DataFrame(st.session_state['log_data'])
-            log_df.to_csv('user_log.csv', mode='a', index=False, header=not os.path.exists('user_log.csv'))  # Save to CSV file
+
+            # Load existing data from CSV to check for duplicates
+            if os.path.exists('user_log.csv'):
+                existing_data = pd.read_csv('user_log.csv')
+            else:
+                existing_data = pd.DataFrame(columns=log_df.columns)
+
+            # Filter out entries that already exist in the CSV based on 'total_time'
+            new_data = log_df[~log_df['total_time'].isin(existing_data['total_time'])]
+
+            # Append only the new entries to the CSV
+            if not new_data.empty:
+                new_data.to_csv('user_log.csv', mode='a', index=False, header=not os.path.exists('user_log.csv'))
+
 
     # Start the detection loop if the detection has started
     if st.session_state.run:
