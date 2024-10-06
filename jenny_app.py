@@ -52,8 +52,11 @@ def login_page():
 
 def main_menu():
     st.title("Main Menu")
-    st.subheader("Please choose a mode to begin your learning:")
+    st.subheader(f"Welcome to ASL Zone, {st.session_state['username']}")
+    st.subheader(" ")
     
+    st.subheader("Please choose a mode to begin your learning:")
+
     # Button to go to Practice Mode
     if st.button("Practice Mode"):
         st.session_state['mode'] = 'practice_mode'  # Set mode to practice
@@ -65,7 +68,6 @@ def main_menu():
     # Button to log out
     if st.button("Log Out"):
         logout()
-
 
 def practice_mode():
     st.title("Practice Mode")
