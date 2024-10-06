@@ -334,3 +334,4 @@ else:
             character_detection_mode()
     else:
         main_menu()
+        
