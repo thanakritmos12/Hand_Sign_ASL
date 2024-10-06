@@ -162,6 +162,10 @@ def character_detection_mode():
         st.session_state['score'] = 0  # Initialize score
     if 'log_data' not in st.session_state:
         st.session_state['log_data'] = []  # Initialize log data
+    if 'start_time' not in st.session_state:  # Initialize start time
+        st.session_state['start_time'] = None
+    if 'total_time' not in st.session_state:  # Initialize total time
+        st.session_state['total_time'] = 0.0
 
     # Start video capture
     cap = cv2.VideoCapture(0)
@@ -186,34 +190,45 @@ def character_detection_mode():
         timer_placeholder = st.empty()         # For the timer feedback
         score_placeholder = st.empty()         # For displaying the score
         final_score_placeholder = st.empty()   # For displaying the final score when stopping
+        total_time_placeholder = st.empty()    # For displaying total time
 
-    # Control the video stream with a button
     if st.button('Start Detection'):
         st.session_state.run = True
         st.session_state.char_index = 0  # Reset to A when starting detection
         st.session_state.score = 0  # Reset score
+        st.session_state.start_time = time.time()  # Set start time
         hold_start_time = None  # Reset hold start time
+        st.session_state['data_logged'] = False  # Reset data_logged to allow new logging
 
         # Show the initial character image (A)
         image_path = f"images/{characters[st.session_state['char_index']]}.png"
         if os.path.exists(image_path):
             image_placeholder.image(image_path, caption=f'Character: {characters[st.session_state["char_index"]]}', use_column_width=True)
 
-    elif st.button('Stop Detection'):
-        st.session_state.run = False
+    elif st.button('Stop Detection') and not st.session_state.get('data_logged', False):
+        st.session_state['run'] = False
         final_score_placeholder.write(f'**Final Score: {st.session_state["score"]:.2f}%**')  # Display final score
-        
-        # Log the results
-        log_entry = {
-            'Username': st.session_state['username'],
-            'Mode': st.session_state['mode'],
-            'Score': st.session_state['score']
-        }
-        st.session_state['log_data'].append(log_entry)  # Add the entry to the log data
+        total_time_placeholder.write(f'**Total Time: {st.session_state["total_time"]:.2f}s**')  # Display total time
+       
+       # Log the results
+        if not st.session_state.get('data_logged', False):
+            log_entry = {
+                'Username': st.session_state['username'],
+                'Mode': st.session_state['mode'],
+                'Score': st.session_state['score'],
+                'Total Time': st.session_state['total_time']  # Log total time
+            }
 
-        # Save log data to CSV
-        log_df = pd.DataFrame(st.session_state['log_data'])
-        log_df.to_csv('user_log.csv', mode='a', index=False, header=not os.path.exists('user_log.csv'))  # Save to CSV file
+            # Check for duplicate entries based on Total Time
+            is_duplicate = any(entry['Total Time'] == log_entry['Total Time'] for entry in st.session_state['log_data'])
+            
+            if not is_duplicate:  # Only log if it's not a duplicate
+                st.session_state['log_data'].append(log_entry)  # Add the entry to the log data
+                st.session_state['data_logged'] = True  # Set data_logged to True
+
+            # Save log data to CSV
+            log_df = pd.DataFrame(st.session_state['log_data'])
+            log_df.to_csv('user_log.csv', mode='a', index=False, header=not os.path.exists('user_log.csv'))  # Save to CSV file
 
     # Start the detection loop if the detection has started
     if st.session_state.run:
@@ -285,6 +300,10 @@ def character_detection_mode():
                     else:
                         hold_start_time = None
                         timer_placeholder.empty()  # Clear the timer if no correct detection
+
+            # Update total time
+            st.session_state['total_time'] = time.time() - st.session_state['start_time']
+            total_time_placeholder.write(f'**Total Time: {st.session_state["total_time"]:.2f}s**')  # Display total time
 
             # Resize and display the video frame with fixed dimensions
             resized_frame = cv2.resize(frame, (frame_width, frame_height))
