@@ -232,8 +232,8 @@ def character_detection_mode():
             log_df = pd.DataFrame(st.session_state['log_data'])
 
             # Load existing data from CSV to check for duplicates
-            if os.path.exists('user_log.csv'):
-                existing_data = pd.read_csv('user_log.csv')
+            if os.path.exists('./src/spark/assets/data/user_log.csv'):
+                existing_data = pd.read_csv('./src/spark/assets/data/user_log.csv')
             else:
                 existing_data = pd.DataFrame(columns=log_df.columns)
 
@@ -242,7 +242,7 @@ def character_detection_mode():
 
             # Append only the new entries to the CSV
             if not new_data.empty:
-                new_data.to_csv('user_log.csv', mode='a', index=False, header=not os.path.exists('user_log.csv'))
+                new_data.to_csv('./src/spark/assets/data/user_log.csv', mode='a', index=False, header=not os.path.exists('./src/spark/assets/data/user_log.csv'))
 
 
     # Start the detection loop if the detection has started

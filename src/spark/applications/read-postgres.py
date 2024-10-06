@@ -15,7 +15,7 @@ postgres_user = sys.argv[2]
 postgres_pwd = sys.argv[3]
 
 def send_line_notify(message):
-    line_notify_token = 'U7BbRCeJyAtIFI5zmdsGGBuYNwzTI3nunsFkKSempiL'  # เปลี่ยนเป็น Token ของคุณ
+    line_notify_token = 'QZxCJTdSR7bnNmJX4NRtUsAwCtennYFGAQBYEcBU0d1'  # เปลี่ยนเป็น Token ของคุณ
     line_notify_api = 'https://notify-api.line.me/api/notify'
     headers = {'Authorization': f'Bearer {line_notify_token}'}
     payload = {'message': message}
