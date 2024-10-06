@@ -27,10 +27,17 @@ labels_dict = {i: chr(i + 65) for i in range(26)}
 
 # ฟังก์ชันเชื่อมต่อกับ PostgreSQL
 def connect_to_db():
+<<<<<<< HEAD
     print("............................................data .............")
     conn = psycopg2.connect(
         host="postgres",
         database="jdbc:postgresql://postgres:5432/airflow",
+=======
+    print("        data .............")
+    conn = psycopg2.connect(
+        host="postgres",
+        database="airflow",
+>>>>>>> 29c962cd949d0d177eed2cf8118d8f34707fa5ef
         user="airflow",
         password="airflow"
     )
@@ -42,6 +49,7 @@ def add_user_score(username, max_score, score):
     try:
         conn = connect_to_db()
         print(conn)
+<<<<<<< HEAD
         cursor = conn.cursor()
         insert_query = sql.SQL("""
             INSERT INTO user_scores (username, score, max_score)
@@ -50,6 +58,16 @@ def add_user_score(username, max_score, score):
         cursor.execute(insert_query, (username, score, max_score))
         conn.commit()
         cursor.close()
+=======
+        # cursor = conn.cursor()
+        # insert_query = sql.SQL("""
+        #     INSERT INTO user_scores (username, max_score, score)
+        #     VALUES (%s, %s, %s)
+        # """)
+        # cursor.execute(insert_query, (username, max_score, score))
+        # conn.commit()
+        # cursor.close()
+>>>>>>> 29c962cd949d0d177eed2cf8118d8f34707fa5ef
     except Exception as e:
         print(f"Error inserting data: {e}")
     finally:
@@ -334,4 +352,8 @@ else:
             character_detection_mode()
     else:
         main_menu()
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 29c962cd949d0d177eed2cf8118d8f34707fa5ef
