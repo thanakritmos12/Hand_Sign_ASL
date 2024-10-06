@@ -171,9 +171,4 @@ volumes:
 
 networks:
     airflow:
-<<<<<<< HEAD
         driver: bridge
-=======
-        driver: bridge
-        
->>>>>>> 29c962cd949d0d177eed2cf8118d8f34707fa5ef

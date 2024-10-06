@@ -30,8 +30,8 @@ dag = DAG(
     dag_id="hand",
     description="DAG to load score top 5.",
     default_args=default_args,
-    # schedule_interval=timedelta(1)
-    schedule_interval='0 0 * * 0'
+    schedule_interval=timedelta(1)
+    # schedule_interval='0 0 * * 0'
 )
 
 # Define tasks
