@@ -61,7 +61,7 @@ services:
     minio:
         hostname: bucket
         container_name: bucket
-        image: 'bitnami/minio:latest'
+        image: 'soldevelo/minio:latest'
         environment:
             MINIO_ROOT_USER: airflow
             MINIO_ROOT_PASSWORD: airflow
